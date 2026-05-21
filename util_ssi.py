@@ -166,11 +166,31 @@ def naive_svd(R: list[np.ndarray], block_rows: int, block_cols: int, model_order
     return H0, U_n, s_n, s
 
 
+def naive_rsvd(R: list[np.ndarray], block_rows: int, block_cols: int, model_order: int):
+    H0 = build_covariance_hankel(
+        R,
+        block_rows=block_rows,
+        block_cols=block_cols,
+        start_lag=1
+    )
+    print("Block Hankel Matrix Shape", H0.shape)
+
+    # SVD of the covariance block Hankel matrix
+    U, s, Vh = rsvdfile.randomized_hankel_svd(H0, model_order, oversampling_p=10)
+
+    n = model_order
+
+    U_n = U[:, :n]
+    s_n = s[:n]
+    return H0, U_n, s_n, s
+
+
+
 def fast_fft_rsvd(R: list[np.ndarray], block_rows: int, block_cols: int, model_order: int, fast_hankel: bool = True):
     H0 = lg.BlockHankelRepresentation(np.stack(R, axis=0), end_index=block_rows+block_cols+1, window_length=block_rows, window_number=block_cols, fast_hankel=fast_hankel)
 
     # SVD of the covariance block Hankel matrix
-    U, s, Vh = rsvdfile.randomized_hankel_svd(H0, model_order, oversampling_p=10)
+    U, s, Vh = rsvdfile.randomized_hankel_svd(H0, model_order, subspace_iteration_q=0, oversampling_p=10)
 
     n = model_order
 
@@ -220,8 +240,12 @@ def cov_ssi(Y, fs, block_rows, block_cols, model_order, use_rsvd=True, fast_hank
     # decide which svd version to use
     if not use_rsvd:
         H0, U_n, s_n, s = naive_svd(R, block_rows, block_cols, model_order)
+    elif use_rsvd and not fast_hankel:
+        H0, U_n, s_n, s = naive_rsvd(R, block_rows, block_cols, model_order)
+    elif use_rsvd and fast_hankel:
+        H0, U_n, s_n, s = fast_fft_rsvd(R, block_rows, block_cols, model_order, fast_hankel=True)
     else:
-        H0, U_n, s_n, s = fast_fft_rsvd(R, block_rows, block_cols, model_order, fast_hankel=fast_hankel)
+        raise NotImplementedError
 
     # Extended observability matrix estimate:
     #

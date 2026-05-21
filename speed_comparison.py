@@ -65,7 +65,7 @@ def run_speed_comparison():
 
     # run the cov-SSI for different parametrization
     for lag_number in range(100, 1000, 100):
-        for model_order in range(6, min(2*lag_number, 40), 2):
+        for model_order in range(6, min(2*lag_number, 30), 4):
             start = time.perf_counter()
             naive_state_matrix = run_ssi(Y, fs, lag_number, model_order, use_rsvd=False, fast_hankel=False)
             end = time.perf_counter()
@@ -75,7 +75,8 @@ def run_speed_comparison():
                 estimated_state_matrix = run_ssi(Y, fs, lag_number=lag_number, model_order=model_order, use_rsvd=True, fast_hankel=fast_hankel)
                 end = time.perf_counter()
                 approximation_error = np.linalg.norm(naive_state_matrix - estimated_state_matrix)
-                print(f"cov-SSI with {lag_number=}, {model_order=}, {fast_hankel=} took {end - start:0.4f} seconds (factor={naive_time/(end-start):0.2f}, {approximation_error=})")
+                evaluation_string = f"cov-SSI with {lag_number=}, {model_order=}, {fast_hankel=} took {end - start:0.4f} seconds (factor={naive_time/(end-start):0.2f}, {approximation_error=})"
+                print(evaluation_string)
             print()
 
 
