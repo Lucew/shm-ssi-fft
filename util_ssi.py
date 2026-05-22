@@ -173,10 +173,9 @@ def naive_rsvd(R: list[np.ndarray], block_rows: int, block_cols: int, model_orde
         block_cols=block_cols,
         start_lag=1
     )
-    print("Block Hankel Matrix Shape", H0.shape)
 
     # SVD of the covariance block Hankel matrix
-    U, s, Vh = rsvdfile.randomized_hankel_svd(H0, model_order, oversampling_p=10)
+    U, s, Vh = rsvdfile.randomized_hankel_svd(H0, model_order, subspace_iteration_q=2, oversampling_p=10)
 
     n = model_order
 
@@ -190,7 +189,7 @@ def fast_fft_rsvd(R: list[np.ndarray], block_rows: int, block_cols: int, model_o
     H0 = lg.BlockHankelRepresentation(np.stack(R, axis=0), end_index=block_rows+block_cols+1, window_length=block_rows, window_number=block_cols, fast_hankel=fast_hankel)
 
     # SVD of the covariance block Hankel matrix
-    U, s, Vh = rsvdfile.randomized_hankel_svd(H0, model_order, subspace_iteration_q=0, oversampling_p=10)
+    U, s, Vh = rsvdfile.randomized_hankel_svd(H0, model_order, subspace_iteration_q=2, oversampling_p=10)
 
     n = model_order
 
